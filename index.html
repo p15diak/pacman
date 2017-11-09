@@ -4,7 +4,7 @@
     <title>Pacman</title>
     <meta charset="utf-8">
     <style>
-        body {
+        body {ς
             margin: 0;
             padding: 0;
             background-color: #000;
@@ -15,19 +15,27 @@
 <body>
 
     <script type="text/javascript">
+  
 
-    var game = new Phaser.Game(448, 496, Phaser.AUTO);
-
+    var game = new Phaser.Game(700, 500, Phaser.AUTO);
+    var music;
+   
+  
     var Pacman = function (game) {
-
+        //dhlwsh metablhtwn
+        this.score = 0; 
+        this.scoreText;
+        this.secsText;
+        this.livesText;
         this.map = null;
         this.layer = null;
         this.pacman = null;
-
-        this.safetile = 14;
+        this.Bonus=0;
+        this.textBonus;
+        this.safetile = 763;
         this.gridsize = 16;
 
-        this.speed = 150;
+        this.speed = 100;
         this.threshold = 3;
 
         this.marker = new Phaser.Point();
@@ -59,13 +67,15 @@
 
             //  We need this because the assets are on github pages
             //  Remove the next 2 lines if running locally
-            this.load.baseURL = 'https://p15diak.github.io/pacman/';
-            this.load.crossOrigin = 'anonymous';
+           
 
-            this.load.image('dot', 'assets/dot.png');
+            this.load.image('dot', 'assets/dot.png');// eisagwgh sprite gia dot
+            this.load.image('bonus','assets/bonus.png');// eisagwgh sprite gia bonus
             this.load.image('tiles', 'assets/pacman-tiles.png');
-            this.load.spritesheet('pacman', 'assets/pacman.png', 32, 32);
+            this.load.spritesheet('pacman', 'assets/Untitled.png', 32, 32);
             this.load.tilemap('map', 'assets/pacman-map.json', null, Phaser.Tilemap.TILED_JSON);
+            this.load.audio('boden', ['assets/Star Wars.mp3', 'assets/Star Wars.ogg']);
+        
 
             //  Needless to say, graphics (C)opyright Namco
 
@@ -75,16 +85,25 @@
 
             this.map = this.add.tilemap('map');
             this.map.addTilesetImage('pacman-tiles', 'tiles');
+            
+            this.scoreText = this.add.text((28 * 16), (1*16), 'score: 0', { fontSize: '32px', fill: '#117' }); //dhmiourgeia text gia scoreText
+            this.livesText = this.add.text((28 * 16), (3*16), 'lives: 3', { fontSize: '32px', fill: '#117' });//dhmiourgeia text gia livestext
+            this.textBonus = this.add.text((28 * 16), (5*16), 'Bonus: 0', { fontSize: '32px', fill: '#117' });//dhmiourgeia text bonus
+            this.secsText = this.add.text((28 * 16), (7*16), 'Time: ', { fontSize: '32px', fill: '#117' });
+            this.time.events.loop(5000, this.bonusApears, this);// loup pou emfanizei to bonus sta 5 sec kalontas thn bonusApears
+            this.time.events.loop(9000, this. bonusDisapear,this);// loup pou exafanizei to bonus sta 10 secs kalontas thn bonusDisapear
+           
 
             this.layer = this.map.createLayer('Pacman');
 
             this.dots = this.add.physicsGroup();
+            this.bonus= this.add.physicsGroup();
 
-            this.map.createFromTiles(7, this.safetile, 'dot', this.layer, this.dots);
+            this.map.createFromTiles(104, this.safetile, 'dot', this.layer, this.dots);
 
             //  The dots will need to be offset by 6px to put them back in the middle of the grid
-            this.dots.setAll('x', 6, false, false, 1);
-            this.dots.setAll('y', 6, false, false, 1);
+            this.dots.setAll('x', 1, false, false, 1);
+            this.dots.setAll('y', 1, false, false, 1);
 
             //  Pacman should collide with everything except the safe tile
             this.map.setCollisionByExclusion([this.safetile], true, this.layer);
@@ -92,17 +111,36 @@
             //  Position Pacman at grid location 14x17 (the +8 accounts for his anchor)
             this.pacman = this.add.sprite((14 * 16) + 8, (17 * 16) + 8, 'pacman', 0);
             this.pacman.anchor.set(0.5);
-            this.pacman.animations.add('munch', [0, 1, 2, 1], 20, true);
+            this.pacman.animations.add('munch', [1, 2, 3, 4,5], 9, true);
 
             this.physics.arcade.enable(this.pacman);
             this.pacman.body.setSize(16, 16, 0, 0);
 
             this.cursors = this.input.keyboard.createCursorKeys();
+            
+            
+       
+
 
             this.pacman.play('munch');
             this.move(Phaser.LEFT);
+            this.music = game.add.audio('boden');
+            this.music.play();
 
         },
+        
+        bonusApears: function(){
+            this.bonus.create((12 * 16) + 8, (28 * 16) + 8, 'bonus');//dhmiourgeia bonus vazontas sugkekrimenes suntetagmenes
+            this.bonus.create((1 * 16) + 8, (28 * 10) + 8, 'bonus');
+        
+        },
+        
+       bonusDisapear: function(){
+        
+        this.bonus.callAll('kill');     //exafanizei ta 2 bonus
+        
+    },
+        
 
         checkKeys: function () {
 
@@ -127,7 +165,6 @@
                 //  This forces them to hold the key down to turn the corner
                 this.turning = Phaser.NONE;
             }
-       
 
         },
 
@@ -219,9 +256,12 @@
 
         },
 
-        eatDot: function (pacman, dot) {
+        eatDot: function (pacman, dot ) {
 
             dot.kill();
+            
+            this.score +=10;
+            this.scoreText.text = 'Score: ' + this.score;
 
             if (this.dots.total === 0)
             {
@@ -229,12 +269,22 @@
             }
 
         },
+         eatBonus: function (pacman, bonus){// sunarthsh pou otan to pac man faei to bonus prosthetei shn 50 sto bonus text
+            bonus.kill();                                               
+            this.Bonus += 50;
+            this.textBonus.text='Bonus: '+this.Bonus;
+        },
 
+        
+       
         update: function () {
           
             this.physics.arcade.collide(this.pacman, this.layer);
             this.physics.arcade.overlap(this.pacman, this.dots, this.eatDot, null, this);
-
+            this.physics.arcade.overlap(this.pacman, this.bonus, this.eatBonus, null, this);
+            this.secsText.text ='Time: '+ Math.round(game.time.now*1/1000)+'secs';//update to secsText ka8e sec 
+            this.Bonus.txt;
+            
             this.marker.x = this.math.snapToFloor(Math.floor(this.pacman.x), this.gridsize) / this.gridsize;
             this.marker.y = this.math.snapToFloor(Math.floor(this.pacman.y), this.gridsize) / this.gridsize;
 
