@@ -1,5 +1,7 @@
 var boot = {
     preload:function(){
+	this.load.baseURL = 'https://Dimitris-Stamatis.github.io/pacman/';
+        this.load.crossOrigin = 'Dimitris-Stamatis';
     },
     
 	create:function(){
