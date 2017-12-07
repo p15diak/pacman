@@ -1,6 +1,7 @@
 var preloader = {
 	preload: function(){
-		
+	    this.load.baseURL = 'https://p15diak.github.io/pacman/';
+            this.load.crossOrigin = 'p15diak';
             this.load.image('dot', 'assets/dot.png');// eisagwgh sprite gia dot
             this.load.image('bonus','assets/bonus.png');// eisagwgh sprite gia bonus
             this.load.image('tiles', 'assets/pacman-tiles.png');
